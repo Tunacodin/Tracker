@@ -1,0 +1,194 @@
+﻿@using Tracker.Api
+@{
+    ViewData["Title"] = "Yönetici Paneli";
+}
+
+@model PaginatedResponse<CustomerVM>
+
+<div class="app-content">
+    <!-- Content Wrapper -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Yönetici Paneli</h3>
+
+                    <div class="card-tools">
+                        <form asp-action="SearchCustomer" asp-controller="Home" method="get">
+                            <div class="input-group input-group-sm" style="width: 150px;">
+                                <input type="text" id="tableSearch" name="search" class="form-control float-right"
+                                    placeholder="Ara">
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-default">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body table-responsive p-0" style="height: 600px;">
+                    @if (Model.Data == null || !Model.Data
+                    .Any())
+                    {
+                        <div class="alert alert-info text-center" role="alert">
+                            Müşteri bulunamadı.
+                        </div>
+                    }
+                    else
+                    {
+                        <table class="table table-head-fixed text-nowrap">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Ad Soyad</th>
+                                    <th>E-posta</th>
+                                    <th>Ekleyen</th>
+                                    <th>Durum</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var customer in Model.Data)
+                                {
+                                    <tr>
+                                        <td>@customer.Id</td>
+                                        <td>@customer.FullName</td>
+                                        <td>@customer.Email</td>
+                                        <td>@customer.WhoAdded</td>
+                                        <td>@Enum.GetName(typeof(Status), customer.Status) </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-info">İşlemler</button>
+                                                <button type="button" class="btn btn-info dropdown-toggle dropdown-icon"
+                                                    data-toggle="dropdown">
+                                                    <span class="sr-only">Toggle Dropdown</span>
+                                                </button>
+                                                <div class="dropdown-menu" role="menu">
+                                                    <a class="dropdown-item" asp-action="Index" asp-controller="Home"
+                                                        asp-route-email="@customer.Email">Müşteri Paneli</a>
+                                                    <a class="dropdown-item" asp-action="VerifyPanelCode" asp-controller="Home"
+                                                        asp-route-email="@customer.Email">Panel Transfer Kodu Gir</a>
+                                                    <div class="dropdown-divider"></div>
+                                                    <a class="dropdown-item" id="deleteCustomer"
+                                                        onclick="handleDeleteCustomer('@customer.Email')"
+                                                        style="cursor: pointer;">Müşteriyi Sil</a>
+                                                    <a class="dropdown-item" id="makeActiveCustomer"
+                                                        onclick="handleActiveCustomer('@customer.Email')"
+                                                        style="cursor: pointer;">Müşteriyi Aktif Et</a>
+
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        @{
+                            var prevDisabled = Model.PageNumber <= 1 ? "disabled" : "";
+                            var nextDisabled = Model.PageNumber >= Model.TotalPages ? "disabled" : "";
+                        }
+
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" asp-action="AdminDashboard"
+                                asp-route-pageNumber="@(Model.PageNumber - 1)">&laquo;</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-action="AdminDashboard" asp-route-pageNumber="@i">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" asp-action="AdminDashboard"
+                                asp-route-pageNumber="@(Model.PageNumber + 1)">&raquo;</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <!-- /.card -->
+        </div>
+    </section>
+</div> <!--end::App Content-->
+
+<script>
+    function searchTable() {
+        const input = document.getElementById("tableSearch");
+        const filter = input.value.toLowerCase();
+        const table = document.querySelector(".table");
+        const rows = table.getElementsByTagName("tr");
+
+        for (let i = 1; i < rows.length; i++) { // Start from 1 to skip header row
+            const row = rows[i];
+            const cells = row.getElementsByTagName("td");
+            let found = false;
+
+            for (let j = 0; j < cells.length; j++) {
+                const cell = cells[j];
+                if (cell) {
+                    const text = cell.textContent || cell.innerText;
+                    if (text.toLowerCase().indexOf(filter) > -1) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+
+            row.style.display = found ? "" : "none";
+        }
+    }
+    function handleDeleteCustomer(email) {
+        if (!email) {
+            alert("Email is required");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this customer?")) {
+            return;
+        }
+
+        AjaxHelper.delete(`Customer?email=${email}`)
+            .then(response => {
+                AjaxHelper.handleResponse(response,
+                    () => {
+                        alert("Customer deleted successfully -- Refresh the page to see the changes");
+                        // Optional: Automatically refresh the page
+                        // window.location.reload();
+                    },
+                    "Failed to delete customer"
+                );
+            })
+            .catch(() => alert("An error occurred while deleting the customer."));
+    }
+    function handleActiveCustomer(email) {
+        if (!email) {
+            alert("Email is required");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to make this customer active?")) {
+            return;
+        }
+
+        AjaxHelper.post(`Customer/Make-Active?email=${email}`)
+            .then(response => {
+                AjaxHelper.handleResponse(response,
+                    () => {
+                        alert("Customer made active successfully -- Refresh the page to see the changes");
+                        // Optional: Automatically refresh the page
+                        // window.location.reload();
+                    },
+                    "Failed to make customer active"
+                );
+            })
+            .catch(() => alert("An error occurred while making the customer active."));
+    }
+</script>

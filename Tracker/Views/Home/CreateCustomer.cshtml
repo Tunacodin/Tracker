@@ -1,0 +1,129 @@
+﻿@using Tracker.Api
+@{
+
+}
+@model CreateCustomerDTO
+<div class="app-content-header">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::Row-->
+        <div class="row">
+            <div class="col-sm-6">
+                <h3 class="mb-0">Müşteri Oluştur</h3>
+            </div>
+        </div> <!--end::Row-->
+    </div> <!--end::Container-->
+</div> <!--end::App Content Header--> <!--begin::App Content-->
+
+<div class="app-content">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::Row-->
+        <div class="row g-4">
+            <!--begin::Col-->
+            <!--begin::Col-->
+            <!--begin::Col-->
+            <div class="col-md-6">
+                <!--begin::Form Validation-->
+                <div class="card card-info card-outline mb-4">
+                    <!--begin::Header-->
+                    <div class="card-header">
+                        <div class="card-title">Form Doğrulama</div>
+                    </div> <!--end::Header--> <!--begin::Form-->
+                    <form class="needs-validation" asp-action="CreateCustomer" method="post">
+                        <!--begin::Body-->
+                        <div class="card-body">
+                            <!--begin::Row-->
+                            <div class="row g-3">
+                                <!--begin::Col-->
+                                <div class="col-md-6">
+                                    <label for="validationCustom01" class="form-label">Ad Soyad</label> <input
+                                        type="text" class="form-control" id="validationCustom01" asp-for="FullName"
+                                        required>
+                                    <div class="valid-feedback">Görünüş iyi!</div>
+                                </div> <!--end::Col--> <!--begin::Col-->
+                                <div class="col-md-6">
+                                    <label for="validationCustom02" class="form-label">E-posta</label> <input
+                                        asp-for="Email" type="email" class="form-control" id="validationCustom02"
+                                        required>
+                                    <div class="valid-feedback">Görünüş iyi!</div>
+                                </div> <!--end::Col--> <!--begin::Col-->
+                                <div class="col-md-6">
+                                    <label for="validationCustomUsername" class="form-label">Kullanıcı Adı</label>
+                                    <div class="input-group has-validation">
+                                        <span class="input-group-text" id="inputGroupPrepend"></span> <input
+                                            asp-for="UserName" type="text" class="form-control"
+                                            id="validationCustomUsername" aria-describedby="inputGroupPrepend" required>
+                                        <div class="invalid-feedback">
+                                            Lütfen bir kullanıcı adı seçin.
+                                        </div>
+                                    </div>
+                                </div> <!--end::Col--> <!--begin::Col-->
+                                <div class="col-md-6">
+                                    <div asp-validation-summary="All" class="text-danger"></div>
+                                </div> <!--end::Col-->
+                                <div class="col-md-6">
+                                    <label for="validationCustom01" class="form-label">Şifre</label> <input
+                                        asp-for="Password" type="password" class="form-control" id="validationCustom01"
+                                        required>
+                                    <div class="valid-feedback">Görünüş iyi!</div>
+                                </div> <!--begin::Col-->
+                                <div class="col-md-6">
+                                    <label for="validationCustom05" class="form-label">Şifre Tekrar</label> <input
+                                        asp-for="PasswordConfirm" type="password" class="form-control"
+                                        id="validationCustom05" required>
+                                    <div class="invalid-feedback">
+                                        Boş bırakılamaz
+                                    </div>
+                                </div> <!--end::Col-->
+                            </div> <!--end::Row-->
+                        </div> <!--end::Body--> <!--begin::Footer-->
+                        <div class="card-footer">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="IsMaster"
+                                            asp-for="IsMaster">
+                                        <label class="form-check-label" for="IsMaster">
+                                            Master Hesap mi
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <button class="btn btn-info" type="submit">Formu Gönder</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!--end::Footer-->
+                    </form> <!--end::Form--> <!--begin::JavaScript-->
+                    @*   <script>
+                        // Example starter JavaScript for disabling form submissions if there are invalid fields
+                        (() => {
+                            "use strict";
+
+                            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+                            const forms =
+                                document.querySelectorAll(".needs-validation");
+
+                            // Loop over them and prevent submission
+                            Array.from(forms).forEach((form) => {
+                                form.addEventListener(
+                                    "submit",
+                                    (event) => {
+                                        if (!form.checkValidity()) {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                        }
+
+                                        form.classList.add("was-validated");
+                                    },
+                                    false
+                                );
+                            });
+                        })();
+                    </script> <!--end::JavaScript--> *@
+                </div> <!--end::Form Validation-->
+            </div> <!--end::Col-->
+        </div> <!--end::Row-->
+    </div> <!--end::Container-->
+</div>

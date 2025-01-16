@@ -1,0 +1,92 @@
+﻿@using Tracker.Constants
+@{
+    ViewData["Title"] = "Panel Transfer";
+}
+@model GenerateCodeVM
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Kod Oluştur</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Panel Transfer Kodu</label>
+                            <input class="form-control" id="codeInput" readonly>
+                            <span class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Hesaplar</label>
+                                    <select class="duallistbox" multiple="multiple" id="stateSelect"
+                                        style="min-height: 300px;">
+                                        @foreach (var account in Model.Accounts)
+                                        {
+                                            <option value="@account.Phone"> @account.AccountName -- @account.Phone</option>
+                                        }
+                                    </select>
+                                </div>
+                                <!-- /.form-group -->
+                            </div>
+                            <!-- /.col -->
+                        </div>
+                        @if (User.IsInRole(Roles.Master))
+                        {
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="Email">Müşteri Seç</label>
+                                    <select for="Email" class="form-control select2bs4" id="customerSelect">
+                                        <option value="">-- Müşteri Seç --</option>
+                                        @foreach (var customer in Model.Customers)
+                                        {
+                                            <option value="@customer.Email"> @customer.FullName- @customer.Email</option>
+                                        }
+                                    </select>
+                                    <span class="text-danger"></span>
+                                </div>
+                            </div>
+                        }
+                        <!-- /.row -->
+                    </div>
+                </div>
+
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary" id="submitButton" onclick="generateCode()">Kod
+                        Al</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+
+        const baseUrl = "https://localhost:7096/api/";
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+        function generateCode() {
+            const customerSelect = document.getElementById("customerSelect");
+            const endpoint = customerSelect && customerSelect.value
+                ? `Customer/Code?email=${encodeURIComponent(customerSelect.value)}`
+                : "Customer/Code";
+
+            AjaxHelper.post(endpoint, { accounts: $('#stateSelect').val() })
+                .then(response => {
+                    AjaxHelper.handleResponse(response,
+                        (data) => {
+                            document.getElementById("codeInput").value = data.id;
+                        },
+                        "Failed to generate code"
+                    );
+                })
+                .catch(() => alert("An error occurred while generating the code."));
+        }
+    </script>
+</section>

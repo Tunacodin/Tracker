@@ -1,0 +1,116 @@
+﻿@using Tracker.Api
+@model SendMoneyWithMypayzVM
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Para Gönder</h3>
+                    </div>
+
+                    <form asp-action="SendMoneyWithMypayz" method="post">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label asp-for="ReceiverMypayzNumber">Alıcı MyPayz Numarası</label>
+                                <div class="input-group">
+                                    <input asp-for="ReceiverMypayzNumber" class="form-control"
+                                        placeholder="Alıcı MyPayz numarası giriniz">
+                                    <div class="input-group-append">
+                                        <button type="button" class="btn btn-outline-secondary" id="verifyButton"
+                                            disabled>
+                                            <i class="fas fa-question-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <span asp-validation-for="ReceiverMypayzNumber" class="text-danger"></span>
+                                <span id="receiverName" class="text-success"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Amount">Tutar</label>
+                                <input asp-for="Amount" class="form-control" placeholder="Tutar giriniz">
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Description">Açıklama</label>
+                                <textarea asp-for="Description" class="form-control"
+                                    placeholder="Açıklama giriniz"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Phone">Hesap Seçiniz</label>
+                                <select asp-for="Phone" class="form-control select2bs4" id="accountSelect"
+                                    onchange="validateForm()">
+                                    <option value="">-- Hesap Seçiniz --</option>
+                                    @foreach (var account in Model.Accounts)
+                                    {
+                                        <option value="@account.Phone">@account.Phone</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Accounts" class="text-danger"></span>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" id="submitButton" disabled>Para
+                                Gönder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            var selectElement = document.getElementById('accountSelect');
+            var submitButton = document.getElementById('submitButton');
+            var verifyButton = document.getElementById('verifyButton');
+
+            if (selectElement.value === '') {
+                submitButton.disabled = true;
+                verifyButton.disabled = true;
+            } else {
+                submitButton.disabled = false;
+                verifyButton.disabled = false;
+            }
+        }
+
+        function verifyMypayzNumber() {
+            const phone = $("#accountSelect").val().trim();
+            const receiverMypayzNumber = $("#ReceiverMypayzNumber").val().trim();
+
+            if (!phone || !receiverMypayzNumber) {
+                alert("Please fill in both account and receiver mypayz number fields");
+                return;
+            }
+
+            const formData = {
+                phone: phone,
+                receiverMypayzNumber: receiverMypayzNumber
+            };
+
+            AjaxHelper.post("Account/Verify-Mypayz-Number", formData)
+                .then(response => {
+                    AjaxHelper.handleResponse(response,
+                        (data) => {
+                            $("#receiverName").text(data.name);
+                        },
+                        "Verification failed"
+                    );
+                })
+                .catch(() => {
+                    $("#receiverName").text('');
+                    alert("An error occurred during verification.");
+                });
+        }
+
+        // Add click event listener to verify button
+        document.getElementById('verifyButton').addEventListener('click', verifyMypayzNumber);
+
+        // Call on page load to set initial state
+        validateForm();
+    </script>
+</section>

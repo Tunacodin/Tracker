@@ -1,0 +1,240 @@
+﻿@using Tracker.Api
+@using Tracker.Constants
+@{
+    ViewData["Title"] = "Log Kontrol Paneli";
+}
+
+@model PaginatedResponse<LogVM>
+@{
+    var filter = ViewBag.Filter as LogFilterDTO ?? new LogFilterDTO();
+}
+
+<div class="app-content-header">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6">
+                <h3 class="mb-0">Log Kontrol Paneli</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="app-content">
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <!-- Filter Form -->
+                <div class="card-header">
+                    <form asp-action="AdminLogPage" method="get" class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Hedef Hesap</label>
+                            <input type="text" class="form-control" name="TargetAccount" value="@filter.TargetAccount">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Hedef Email</label>
+                            <input type="email" class="form-control" name="TargetEmail" value="@filter.TargetEmail">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kullanıcı Email</label>
+                            <input type="email" class="form-control" name="LoggedInUserEmail"
+                                value="@filter.LoggedInUserEmail">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Sayfa</label>
+                            <select class="form-control select2bs4" name="Page" id="pageSelect">
+                                <option value="">Tümü</option>
+                                <option value="@MVCPages.Login" selected="@(filter.Page == MVCPages.Login)">
+                                    @MVCPages.Login</option>
+                                <option value="@MVCPages.Logout" selected="@(filter.Page == MVCPages.Logout)">
+                                    @MVCPages.Logout</option>
+                                <option value="@MVCPages.CreateCustomer"
+                                    selected="@(filter.Page == MVCPages.CreateCustomer)">@MVCPages.CreateCustomer
+                                </option>
+                                <option value="@MVCPages.AdminDashboard"
+                                    selected="@(filter.Page == MVCPages.AdminDashboard)">@MVCPages.AdminDashboard
+                                </option>
+                                <option value="@MVCPages.GenerateCode"
+                                    selected="@(filter.Page == MVCPages.GenerateCode)">@MVCPages.GenerateCode</option>
+                                <option value="@MVCPages.Index" selected="@(filter.Page == MVCPages.Index)">
+                                    @MVCPages.Index</option>
+                                <option value="@MVCPages.VerifyPanel" selected="@(filter.Page == MVCPages.VerifyPanel)">
+                                    @MVCPages.VerifyPanel</option>
+                                <option value="@MVCPages.AddAccount" selected="@(filter.Page == MVCPages.AddAccount)">
+                                    @MVCPages.AddAccount</option>
+                                <option value="@MVCPages.IbanList" selected="@(filter.Page == MVCPages.IbanList)">
+                                    @MVCPages.IbanList</option>
+                                <option value="@MVCPages.AccountInfo" selected="@(filter.Page == MVCPages.AccountInfo)">
+                                    @MVCPages.AccountInfo</option>
+                                <option value="@MVCPages.SendMoney" selected="@(filter.Page == MVCPages.SendMoney)">
+                                    @MVCPages.SendMoney</option>
+                                <option value="@MVCPages.SendMoneyToMypayz"
+                                    selected="@(filter.Page == MVCPages.SendMoneyToMypayz)">@MVCPages.SendMoneyToMypayz
+                                </option>
+                                <option value="@MVCPages.RequestMoneyQr"
+                                    selected="@(filter.Page == MVCPages.RequestMoneyQr)">@MVCPages.RequestMoneyQr
+                                </option>
+                                <option value="@MVCPages.Transactions"
+                                    selected="@(filter.Page == MVCPages.Transactions)">@MVCPages.Transactions</option>
+                                <option value="@MVCPages.RemoveAccountFromCustomer"
+                                    selected="@(filter.Page == MVCPages.RemoveAccountFromCustomer)">
+                                    @MVCPages.RemoveAccountFromCustomer</option>
+                                <option value="@MVCPages.ActivateAccount"
+                                    selected="@(filter.Page == MVCPages.ActivateAccount)">@MVCPages.ActivateAccount
+                                </option>
+                                <option value="@MVCPages.DeleteAccount"
+                                    selected="@(filter.Page == MVCPages.DeleteAccount)">@MVCPages.DeleteAccount</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">İşlem Tipi</label>
+                            <select class="form-control select2bs4" name="ActionType" id="actionTypeSelect">
+                                <option value="">Tümü</option>
+                                @foreach (ActionType actionType in Enum.GetValues(typeof(ActionType)))
+                                {
+                                    <option value="@((int)actionType)" selected="@(filter.ActionType == actionType)">
+                                        @actionType</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">İşlem Durumu</label>
+                            <select class="form-control select2bs4" name="ProcessStatus">
+                                <option value="">Tümü</option>
+                                @foreach (ProcessStatus status in Enum.GetValues(typeof(ProcessStatus)))
+                                {
+                                    <option value="@((int)status)" selected="@(filter.ProcessStatus == status)">@status
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btn-primary">Filtrele</button>
+                            <a asp-action="AdminLogPage" class="btn btn-secondary">Filtreleri Temizle</a>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Table Section -->
+                <div class="card-body">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Mesaj</th>
+                                <th>Kullanıcı Email</th>
+                                <th>Hedef Email</th>
+                                <th>Hedef Hesap</th>
+                                <th>IP Adresi</th>
+                                <th>İşlem Tipi</th>
+                                <th>Sayfa</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Data)
+                            {
+                                <tr>
+                                    <td>@item.CreationDate.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                                    <td>@item.Message</td>
+                                    <td>@item.LoggedInUserEmail</td>
+                                    <td>@item.TargetEmail</td>
+                                    <td>@item.TargetAccount</td>
+                                    <td>@item.IpAddress</td>
+                                    <td>@item.ActionType</td>
+                                    <td>@item.Page</td>
+                                    <td>
+                                        @if (item.ProcessStatus == ProcessStatus.Started)
+                                        {
+                                            <span class="badge bg-warning">Başladı</span>
+                                        }
+                                        else if (item.ProcessStatus == ProcessStatus.Completed)
+                                        {
+                                            <span class="badge bg-success">Tamamlandı</span>
+                                        }
+                                        else if (item.ProcessStatus == ProcessStatus.Failed)
+                                        {
+                                            <span class="badge bg-danger">Başarısız</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        @{
+                            var prevDisabled = Model.PageNumber <= 1 ? "disabled" : "";
+                            var nextDisabled = Model.PageNumber >= Model.TotalPages ? "disabled" : "";
+                        }
+
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" href="@Url.Action("AdminLogPage", new { 
+                                pageNumber = Model.PageNumber - 1,
+                                targetAccount = filter.TargetAccount,
+                                targetEmail = filter.TargetEmail,
+                                loggedInUserEmail = filter.LoggedInUserEmail,
+                                page = filter.Page,
+                                actionType = filter.ActionType,
+                                processStatus = filter.ProcessStatus
+                            })">&laquo;</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" href="@Url.Action("AdminLogPage", new { 
+                                    pageNumber = i,
+                                    targetAccount = filter.TargetAccount,
+                                    targetEmail = filter.TargetEmail,
+                                    loggedInUserEmail = filter.LoggedInUserEmail,
+                                    page = filter.Page,
+                                    actionType = filter.ActionType,
+                                    processStatus = filter.ProcessStatus
+                                })">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" href="@Url.Action("AdminLogPage", new { 
+                                pageNumber = Model.PageNumber + 1,
+                                targetAccount = filter.TargetAccount,
+                                targetEmail = filter.TargetEmail,
+                                loggedInUserEmail = filter.LoggedInUserEmail,
+                                page = filter.Page,
+                                actionType = filter.ActionType,
+                                processStatus = filter.ProcessStatus
+                            })">&raquo;</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    function searchTable() {
+        var input = document.getElementById("tableSearch").value.toLowerCase();
+        var table = document.querySelector(".table");
+        var rows = table.getElementsByTagName("tr");
+
+        for (var i = 1; i < rows.length; i++) {
+            var showRow = false;
+            var cells = rows[i].getElementsByTagName("td");
+
+            for (var j = 0; j < cells.length - 1; j++) {
+                var cellText = cells[j].textContent || cells[j].innerText;
+
+                if (cellText.toLowerCase().indexOf(input) > -1) {
+                    showRow = true;
+                    break;
+                }
+            }
+
+            rows[i].style.display = showRow ? "" : "none";
+        }
+    }
+</script>

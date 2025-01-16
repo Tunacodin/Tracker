@@ -1,0 +1,47 @@
+﻿@using Tracker.Api
+@{
+    ViewData["Title"] = "Panel Transfer Doğrulama";
+}
+@model VerifyCodeDTO
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Panel Transfer Kodu Doğrulama</h3>
+                    </div>
+                    <form asp-action="VerifyPanelCode" asp-controller="Home">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label asp-for="CodeId">@Model.CustomerEmail için Kodu Girin</label>
+                                <input class="form-control" asp-for="CodeId" required>
+                                <span class="text-danger"></span>
+                            </div>
+                        </div>
+                        <input type="hidden" asp-for="CustomerEmail">
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" id="submitButton" disabled>
+                                Doğrula
+                            </button>
+                        </div>
+                    </form>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.querySelector('input[name="CodeId"]');
+        const submitButton = document.getElementById('submitButton');
+
+        // Enable button only if input has value
+        input.addEventListener('input', function () {
+            submitButton.disabled = !this.value.trim();
+        });
+    });
+</script>

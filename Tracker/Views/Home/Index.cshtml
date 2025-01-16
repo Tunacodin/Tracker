@@ -1,0 +1,169 @@
+﻿@using Tracker.Api
+@using Tracker.Constants
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+@model BalancesVMPaginated;
+
+<div class="app-content-header">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::Row-->
+        <div class="row">
+            <div class="col-sm-6">
+                <h3 class="mb-0">Panel</h3>
+            </div>
+        </div> <!--end::Row-->
+    </div> <!--end::Container-->
+</div> <!--end::App Content Header--> <!--begin::App Content-->
+<div class="app-content">
+    <!-- Content Wrapper -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Hesap Bilgileri</h3>
+                    <div class="card-tools">
+                        <div class="input-group input-group-sm" style="width: 150px;">
+                            <input type="text" id="tableSearch" name="table_search" class="form-control float-right"
+                                placeholder="Ara" onkeyup="searchTable()">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-default">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card-header -->
+                <div class="card-body">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>MyPayz No</th>
+                                <th>Hesap Adı</th>
+                                <th>Telefon</th>
+                                <th>Bakiye</th>
+                                <th>Aylık Limit</th>
+                                <th>Günlük Limit</th>
+                                <th style="display: none;">İban</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Data)
+                            {
+                                <tr>
+                                    <td>@item.MypayzNo</td>
+                                    <td>@item.AccountName</td>
+                                    <td>@item.Phone</td>
+                                    <td>@(decimal.TryParse(item.Data, out decimal balance) ?
+                                            decimal.Parse(item.Data).ToString("N2") : item.Data) ₺</td>
+                                    <td>@(decimal.TryParse(item.MonthlyLimit, out decimal monthlyLimit) ?
+                                            decimal.Parse(item.MonthlyLimit).ToString("N2") : item.MonthlyLimit) ₺
+                                        (@item.MonthlyTransferCount)</td>
+                                    <td>@(decimal.TryParse(item.DailyLimit, out decimal dailyLimit) ?
+                                            decimal.Parse(item.DailyLimit).ToString("N2") : item.DailyLimit) ₺</td>
+                                    <td style="display: none;">@item.Iban</td>
+                                    <td class="gap-1">
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-info">İşlemler</button>
+                                            <button type="button" class="btn btn-info dropdown-toggle dropdown-icon"
+                                                data-toggle="dropdown">
+                                                <span class="sr-only">Toggle Dropdown</span>
+                                            </button>
+                                            <div class="dropdown-menu" role="menu">
+                                                <a class="dropdown-item" asp-action="AddAccountToCustomer"
+                                                    asp-controller="Account" asp-route-phone="@item.Phone">Hesaba Giriş</a>
+                                                <a class="dropdown-item" asp-action="Info" asp-controller="Account"
+                                                    asp-route-phone="@item.Phone">Hesap Bilgisi</a>
+                                                <a class="dropdown-item" asp-action="IbanList" asp-controller="Account"
+                                                    asp-route-phone="@item.Phone">Hesap IBAN Listesi</a>
+                                                <a class="dropdown-item" asp-action="Transactions" asp-controller="Account"
+                                                    asp-route-phone="@item.Phone">İşlemler</a>
+                                                <a class="dropdown-item" asp-action="RequestMoneyQr"
+                                                    asp-controller="Account" asp-route-phone="@item.Phone">Para İste QR</a>
+                                                <a class="dropdown-item" asp-action="SendMoney" asp-controller="Account"
+                                                    asp-route-phone="@item.Phone">Para Gönder</a>
+                                                <a class="dropdown-item" asp-action="SendMoneyWithMypayz"
+                                                    asp-controller="Account" asp-route-phone="@item.Phone">MyPayz ile Para
+                                                    Gönder</a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item" asp-action="RemoveFromCustomer"
+                                                    asp-controller="Account" asp-route-phone="@item.Phone"
+                                                    asp-route-customerId="@Model.CustomerId">Hesabı Kaldır</a>
+                                                @if (User.IsInRole(Roles.Master))
+                                                {
+                                                    <a class="dropdown-item" asp-action="DeleteAccount" asp-controller="Account"
+                                                        asp-route-phone="@item.Phone">Hesabı Sil</a>
+                                                    <a class="dropdown-item" asp-action="ActivateAccount"
+                                                        asp-controller="Account" asp-route-phone="@item.Phone">Hesabı Aktif
+                                                        Et</a>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.card-body -->
+                <div class="card-footer clearfix">
+                    <ul class="pagination pagination-sm m-0 float-right">
+                        @{
+                            var prevDisabled = Model.PageNumber <= 1 ? "disabled" : "";
+                            var nextDisabled = Model.PageNumber >= Model.TotalPages ? "disabled" : "";
+                        }
+
+                        <li class="page-item @prevDisabled">
+                            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)"
+                                asp-route-email="@ViewBag.Email">&laquo;</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                <a class="page-link" asp-action="Index" asp-route-pageNumber="@i"
+                                    asp-route-email="@ViewBag.Email">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @nextDisabled">
+                            <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)"
+                                asp-route-email="@ViewBag.Email">&raquo;</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+</div> <!--end::App Content-->
+<script>
+    function searchTable() {
+        // Get input value and convert to lowercase for case-insensitive search
+        var input = document.getElementById("tableSearch").value.toLowerCase();
+        var table = document.querySelector(".table");
+        var rows = table.getElementsByTagName("tr");
+
+        // Loop through all table rows (skip header row)
+        for (var i = 1; i < rows.length; i++) {
+            var showRow = false;
+            var cells = rows[i].getElementsByTagName("td");
+
+            // Check each cell in the row (except the last one with operations)
+            for (var j = 0; j < cells.length - 1; j++) {
+                var cellText = cells[j].textContent || cells[j].innerText;
+
+                // If cell text contains the search input, show the row
+                if (cellText.toLowerCase().indexOf(input) > -1) {
+                    showRow = true;
+                    break;
+                }
+            }
+
+            // Set row display style based on search result
+            rows[i].style.display = showRow ? "" : "none";
+        }
+    }
+</script>

@@ -1,0 +1,94 @@
+﻿@using Tracker.Api;
+@model TransactionHistoryData;
+@{
+    var filter = (TransactionFilterVM)ViewBag.Filter;
+}
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">İşlem Geçmişi</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Add Filter Form -->
+                        <form method="get" class="mb-4">
+                            <input type="hidden" name="phone" value="@filter.Phone" />
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>İlk Tarih</label>
+                                        <input type="date" name="firstDate" class="form-control"
+                                               value="@filter.FirstDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Son Tarih</label>
+                                        <input type="date" name="lastDate" class="form-control"
+                                               value="@filter.LastDate" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>Kayıt Sayısı</label>
+                                        <input type="number" name="count" class="form-control"
+                                               value="@filter.Count" min="0" />
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <button type="submit" class="btn btn-primary d-block">Filtre</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Existing table code -->
+                        <table id="example2" class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>İşlem No</th>
+                                    <th>İşlem Adı</th>
+                                    <th>Alıcı IBAN</th>
+                                    <th>Gönderen Adı</th>
+                                    <th>Tutar</th>
+                                    <th>Tarih</th>
+
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var transaction in Model.TransactionList)
+                                {
+                                    <tr>
+                                        <td>@transaction.ProcessId</td>
+                                        <td>@transaction.ProcessName</td>
+                                        <td>@transaction.ReceiverIBAN</td>
+                                        <td>@transaction.SenderName</td>
+                                        <td>@transaction.Amount</td>
+                                        <td data-sort="@(DateTime.ParseExact(transaction.Date, "dd.MM.yyyy", null).ToString("yyyy-MM-dd")) @transaction.Time">
+                                            @(DateTime.ParseExact(transaction.Date, "dd.MM.yyyy", null).ToString("yyyy.MM.dd")) @transaction.Time
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th>İşlem No</th>
+                                    <th>İşlem Adı</th>
+                                    <th>Alıcı IBAN</th>
+                                    <th>Gönderen Adı</th>
+                                    <th>Tutar</th>
+                                    <th>Tarih</th>
+
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

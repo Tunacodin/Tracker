@@ -1,0 +1,85 @@
+﻿@using Tracker.Api
+@model RequestMoneyQrVM
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Para İste</h3>
+                    </div>
+
+                    <form asp-action="RequestMoneyQr" method="post" id="requestMoneyForm">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label asp-for="Phone">Alıcı Telefon</label>
+                                <input asp-for="Phone" class="form-control"
+                                    placeholder="Alıcı telefon numarası giriniz">
+                                <span asp-validation-for="Phone" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Amount">Tutar</label>
+                                <input asp-for="Amount" class="form-control" placeholder="Tutar giriniz">
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary" id="submitButton">QR Oluştur</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Add new QR code display div -->
+            <div class="col-md-4" id="qrCodeContainer" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">QR Kod</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <img id="qrCodeImage" style="display: none;" class="img-fluid" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        function handleSubmit(e) {
+            e.preventDefault(); // Prevent form submission
+            $("#submitButton").prop('disabled', true); // Disable button while processing
+
+            const formData = {
+                phone: $("#Phone").val(),
+                amount: $("#Amount").val()
+            };
+
+            AjaxHelper.post("Account/Request-Money-Qr", formData)
+                .then(response => {
+                    AjaxHelper.handleResponse(response,
+                        (data) => {
+                            $("#qrCodeContainer").show();
+                            $("#qrCodeImage")
+                                .attr("src", data)
+                                .show();
+                        },
+                        "Failed to generate QR code"
+                    );
+                })
+                .catch(() => {
+                    $("#qrCodeImage").hide();
+                    $("#qrCodeContainer").hide();
+                    alert("An error occurred while generating the QR code.");
+                })
+                .finally(() => {
+                    // Re-enable button after request completes
+                    $("#submitButton").prop('disabled', false);
+                });
+        }
+        // Change event listener to listen to form submit instead of button click
+        document.getElementById('requestMoneyForm').addEventListener('submit', handleSubmit);
+    </script>
+</section>

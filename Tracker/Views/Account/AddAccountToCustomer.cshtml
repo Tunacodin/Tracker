@@ -1,0 +1,190 @@
+﻿@using Tracker.Constants
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    string phone = ViewBag.Phone;
+}
+<div class="app-content-header">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::Row-->
+        <div class="row">
+            <div class="col-sm-6">
+                <h3 class="mb-0">Hesap Girişi</h3>
+            </div>
+        </div> <!--end::Row-->
+    </div> <!--end::Container-->
+</div> <!--end::App Content Header--> <!--begin::App Content-->
+<div class="app-content">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">Hesap Girişi</h3>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="bs-stepper">
+                            <div class="bs-stepper-header" role="tablist">
+                                <!-- your steps here -->
+                                <div class="step" data-target="#logins-part">
+                                    <button type="button" class="step-trigger" role="tab" aria-controls="logins-part"
+                                        id="logins-part-trigger">
+                                        <span class="bs-stepper-circle">1</span>
+                                        <span class="bs-stepper-label">Giriş</span>
+                                    </button>
+                                </div>
+                                <div class="line"></div>
+                                <div class="step" data-target="#information-part">
+                                    <button type="button" class="step-trigger" role="tab"
+                                        aria-controls="information-part" id="information-part-trigger">
+                                        <span class="bs-stepper-circle">2</span>
+                                        <span class="bs-stepper-label">Doğrula</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="bs-stepper-content">
+                                <!-- your steps content here -->
+                                <div id="logins-part" class="content" role="tabpanel"
+                                    aria-labelledby="logins-part-trigger">
+                                    @if (User.IsInRole(Roles.Master))
+                                    {
+                                        <div class="form-group">
+                                            <label for="CustomerId">Müşteri Seç</label>
+                                            <select for="CustomerId" class="form-control select2bs4" id="customerSelect"
+                                                onchange="validateForm()">
+                                                <option value="">-- Müşteri Seç --</option>
+                                                @foreach (var customer in ViewBag.Customers)
+                                                {
+                                                    <option value="@customer.Id">@customer.FullName -- @customer.Email</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    }
+                                    <div class="form-group">
+                                        <label for="FullName">Hesap Adı Soyadı</label>
+                                        <input type="text" class="form-control" id="FullName"
+                                            placeholder="Hesap Adı Soyadı">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Phone">Telefon</label>
+                                        <input type="text" class="form-control" id="Phone" asp-for="@phone"
+                                            placeholder="Telefon">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="Password">Şifre</label>
+                                        <input type="password" class="form-control" id="Password" placeholder="Şifre">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <button class="btn btn-primary" id="submitButton" disabled
+                                            onclick="postCredentials()">Sonraki Adım</button>
+                                    </div>
+                                </div>
+                                <div id="information-part" class="content" role="tabpanel"
+                                    aria-labelledby="information-part-trigger">
+                                    <div class="form-group">
+                                        <label for="Otp">Doğrulama Kodu</label>
+                                        <input type="text" class="form-control" id="Otp" placeholder="Doğrulama Kodu">
+                                    </div>
+                                    <div class="form-group mt-2">
+                                        <button class="btn btn-primary" onclick="postVerifyCredentials()">Hesabı
+                                            Doğrula</button>
+                                        <button class="btn btn-primary me-2"
+                                            onclick="stepper.previous()">Önceki</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.card -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function validateForm() {
+        var selectElement = document.getElementById('customerSelect');
+        var submitButton = document.getElementById('submitButton');
+
+        if (selectElement) {
+            submitButton.disabled = selectElement.value === '';
+        } else {
+            // For non-master users, enable the button by default
+            submitButton.disabled = false;
+        }
+    }
+    // Call on page load to set initial state           
+    validateForm();
+    document.addEventListener('DOMContentLoaded', function () {
+        window.stepper = new Stepper(document.querySelector('.bs-stepper'))
+    })
+    function postCredentials() {
+        const phone = $("#Phone").val().trim();
+        const password = $("#Password").val().trim();
+        const accountName = $("#FullName").val().trim();
+        const customerId = $("#customerSelect").length ? $("#customerSelect").val().trim() : null;
+
+        if (!phone || !password || ($("#customerSelect").length && !customerId)) {
+            alert("Please fill in all required fields");
+            return;
+        }
+
+        const formData = {
+            phone: phone,
+            password: password,
+            accountName: accountName,
+            customerId: customerId
+        };
+
+        AjaxHelper.post("Account", formData)
+            .then(response => {
+                AjaxHelper.handleResponse(response,
+                    (data) => {
+                        if (data === true) {
+                            alert("Login Success. You will be redirected to main page");
+                            window.location.href = "/Home/Index";
+                            return;
+                        }
+                        alert("Please Verify OTP");
+                        stepper.next();
+                    },
+                    "Login failed"
+                );
+            })
+            .catch(() => alert("An error occurred during login."));
+    }
+    function postVerifyCredentials() {
+        const phone = $("#Phone").val().trim();
+        const password = $("#Password").val().trim();
+        const customerId = $("#customerSelect").length ? $("#customerSelect").val().trim() : null;
+        const otp = $("#Otp").val().trim();
+
+        if (!phone || !password || !otp) {
+            alert("Please fill in all fields");
+            return;
+        }
+
+        const formData = {
+            phone: phone,
+            password: password,
+            otp: otp,
+            customerId: customerId
+        };
+
+        AjaxHelper.post("Account/Verify", formData)
+            .then(response => {
+                AjaxHelper.handleResponse(response,
+                    () => {
+                        alert("Account Verified. You will be redirected to main page");
+                        window.location.href = "/Home/Index";
+                    },
+                    "Verify failed"
+                );
+            })
+            .catch(() => alert("An error occurred during verify."));
+    }
+</script>

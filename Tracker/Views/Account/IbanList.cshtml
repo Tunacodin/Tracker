@@ -1,0 +1,72 @@
+﻿@using Tracker.Api
+@model IbanListData
+
+<div class="app-content-header">
+    <!--begin::Container-->
+    <div class="container-fluid">
+        <!--begin::Row-->
+        <div class="row">
+            <div class="col-sm-6">
+                <h3 class="mb-0">IBAN Listesi</h3>
+            </div>
+        </div> <!--end::Row-->
+    </div> <!--end::Container-->
+</div> <!--end::App Content Header--> <!--begin::App Content-->
+
+<div class="app-content">
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Hesap IBAN Listesi</h3>
+
+                            @* <div class="card-tools">
+                                <div class="input-group input-group-sm" style="width: 150px;">
+                                    <input type="text" name="table_search" class="form-control float-right" placeholder="Search">
+
+                                    <div class="input-group-append">
+                                        <button type="submit" class="btn btn-default">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div> *@
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body table-responsive p-0">
+                            <table class="table table-hover text-nowrap">
+                                <thead>
+                                    <tr>
+                                        <th>IBAN Listesi</th>
+                                        <th>Hesap Adı</th>
+                                        <th>IBAN No</th>
+                                        <th>Banka Adı</th>
+                                        <th>Açıklama</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.IbanList)
+                                    {
+                                        <tr>
+                                            <td>@item.IBANListId</td>
+                                            <td>@item.NameSurname</td>
+                                            <td>@item.IBANNo</td>
+                                            <td><img src="@item.BankLogo" alt="@item.BankName" style="height: 32px;" />
+                                                <span>@item.BankName</span>
+                                            </td>
+                                            <td>@item.Description</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- /.card-body -->
+                    </div>
+                    <!-- /.card -->
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

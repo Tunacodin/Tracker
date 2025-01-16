@@ -1,0 +1,79 @@
+﻿@using Tracker.Api
+@model SendMoneyVM
+
+<section class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card card-primary">
+                    <div class="card-header">
+                        <h3 class="card-title">Para Gönder</h3>
+                    </div>
+
+                    <form asp-action="SendMoney" method="post">
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label asp-for="IBAN">IBAN</label>
+                                <input asp-for="IBAN" class="form-control" placeholder="IBAN giriniz">
+                                <span asp-validation-for="IBAN" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Amount">Tutar</label>
+                                <input asp-for="Amount" class="form-control" placeholder="Tutar giriniz">
+                                <span asp-validation-for="Amount" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="NameSurname">Ad Soyad</label>
+                                <input asp-for="NameSurname" class="form-control" placeholder="Ad soyad giriniz">
+                                <span asp-validation-for="NameSurname" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label asp-for="Description">Açıklama</label>
+                                <textarea asp-for="Description" class="form-control"
+                                    placeholder="Açıklama giriniz"></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+                            <div class="form-group">
+                                <label asp-for="Phone">Hesap Seçiniz</label>
+                                <select asp-for="Phone" class="form-control select2bs4" id="accountSelect"
+                                    onchange="validateForm()">
+                                    <option value="">-- Hesap Seçiniz --</option>
+                                    @foreach (var account in Model.Accounts)
+                                    {
+                                        <option value="@account.Phone">@account.Phone</option>
+                                    }
+                                </select>
+                                <span asp-validation-for="Accounts" class="text-danger"></span>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary" id="submitButton" disabled>Para
+                                Gönder</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function validateForm() {
+            var selectElement = document.getElementById('accountSelect');
+            var submitButton = document.getElementById('submitButton');
+
+            if (selectElement.value === '') {
+                submitButton.disabled = true;
+            } else {
+                submitButton.disabled = false;
+            }
+        }
+
+        // Call on page load to set initial state
+        validateForm();
+    </script>
+</section>

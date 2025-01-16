@@ -1,0 +1,95 @@
+﻿@{
+    Layout = null;
+}
+@model LoginVM
+
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tracker Panel | Giriş Sayfası</title>
+
+    <!-- Google Font: Source Sans Pro -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="~/admin/plugins/fontawesome-free/css/all.min.css">
+    <!-- icheck bootstrap -->
+    <link rel="stylesheet" href="~/admin/plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+    <!-- Theme style -->
+    <link rel="stylesheet" href="~/admin/dist/css/adminlte.min.css">
+</head>
+
+<body class="hold-transition login-page">
+    <div class="login-box">
+        <div class="login-logo">
+            <a href="~/admin/index2.html"><b>Tracker Panel</b> Giriş</a>
+        </div>
+        <!-- /.login-logo -->
+        <div class="card">
+            <div class="card-body login-card-body">
+                <p class="login-box-msg">Lütfen bilgilerinizi giriniz</p>
+
+                <!-- Login Form -->
+                <form asp-action="Index" method="post" id="loginForm">
+                    <div class="input-group mb-3">
+                        <input type="email" id="Email" class="form-control" placeholder="E-posta" asp-for="Email" required>
+                        <div class="input-group-text"> <span class="bi bi-envelope-at"></span> </div>
+                    </div>
+                    <div class="input-group mb-3">
+                        <input type="password" id="Password" class="form-control" asp-for="Password" placeholder="Şifre">
+                        <div class="input-group-text"> <span class="bi bi-lock-fill"></span> </div>
+                    </div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="input-group">
+                        <div class="col-4 offset-8 text-end">
+                            <div class="d-grid gap-2">
+                                <button type="submit" id="getCodeButton" class="btn btn-primary">Giriş Yap</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Two-Factor Authentication Form -->
+                <form asp-action="VerifyCode" method="post" id="twoFactorForm" style="display: none;">
+                    <p class="login-box-msg">E-posta adresinize gelen doğrulama kodunu giriniz</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="VerificationCode" name="VerificationCode" class="form-control" placeholder="Doğrulama Kodu" required>
+                        <div class="input-group-text"> <span class="bi bi-shield-lock"></span> </div>
+                    </div>
+                    <div asp-validation-summary="All" class="text-danger"></div>
+                    <div class="input-group">
+                        <div class="col-4 offset-8 text-end">
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-success">Doğrula</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            <!-- /.login-card-body -->
+        </div>
+    </div>
+    <!-- /.login-box -->
+    <!-- jQuery -->
+    <script src="~/admin/plugins/jquery/jquery.min.js"></script>
+    <!-- Bootstrap 4 -->
+    <script src="~/admin/plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="~/admin/dist/js/adminlte.min.js"></script>
+
+    <!-- Custom Script to Toggle Forms -->
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+
+            // Simulate successful login and show Two-Factor Authentication form
+            document.getElementById("loginForm").style.display = "none";
+            document.getElementById("twoFactorForm").style.display = "block";
+        });
+    </script>
+</body>
+
+</html>

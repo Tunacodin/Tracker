@@ -1,0 +1,44 @@
+﻿@using Tracker.Api
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model AccountInfoVM
+<div class="app-content">
+    <!--begin::Container-->
+    <section class="content">
+        <div class="container-fluid">
+            <!--begin::Row-->
+            <div class="row">
+                <div class="col-md-4">
+                    <!-- Widget: user widget style 2 -->
+                    <div class="card card-widget widget-user-2">
+                        <!-- Add the bg color to the header using any of the bg-* classes -->
+                        <div class="widget-user-header bg-warning text-center">
+                            <!-- /.widget-user-image -->
+                            <h3 class="widget-user-username">Hesap</h3>
+                            <h5 class="widget-user-desc">@Model.Phone</h5>
+                        </div>
+                        <div class="card-footer p-0">
+                            <ul class="nav flex-column">
+                                <li class="nav-item d-flex justify-content-between align-items-center p-3">
+                                    MyPayz No
+                                    <span class="badge bg-primary">@Model.MypayzNo</span>
+                                </li>
+                                <li class="nav-item d-flex justify-content-between align-items-center p-3">
+                                    IBAN
+                                    <span class="badge bg-info">@Model.Iban</span>
+                                </li>
+                                <li class="nav-item d-flex justify-content-between align-items-center p-3">
+                                    Alıcı
+                                    <span class="badge bg-success">@Model.Receiver</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- /.widget-user -->
+                </div>
+            </div> <!--end::Row-->
+        </div> <!--end::Container-->
+
+    </section>
+</div> <!--end::App Content Header--> <!--begin::App Content-->

@@ -12,17 +12,18 @@ using Persistence.Context;
 namespace Persistence.Migrations
 {
     [DbContext(typeof(TrackerDbContext))]
-    [Migration("20241127204716_newone")]
-    partial class newone
+    [Migration("20250116203521_init")]
+    partial class init
     {
+        /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.15")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("AccountCustomer", b =>
                 {
@@ -201,6 +202,12 @@ namespace Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("VerificationCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("VerificationCodeExpiration")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("WhoAdded")
                         .HasColumnType("nvarchar(max)");
 
@@ -219,10 +226,10 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "0d0f75a2-71cc-4061-bf65-3e70e02f3d6e",
+                            Id = "318597ac-f2bd-4081-a689-8cfb0936d334",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "019d476a-0521-4256-a5f8-44349c41d886",
-                            CreationDate = new DateTime(2024, 11, 27, 20, 47, 16, 475, DateTimeKind.Utc).AddTicks(3447),
+                            ConcurrencyStamp = "fb561c17-4886-4266-80f9-bee39ab01e4b",
+                            CreationDate = new DateTime(2025, 1, 16, 20, 35, 21, 496, DateTimeKind.Utc).AddTicks(1919),
                             Email = "test@test.com",
                             EmailConfirmed = true,
                             FullName = "admin",
@@ -231,11 +238,58 @@ namespace Persistence.Migrations
                             NormalizedUserName = "ADMIN",
                             PasswordHash = "AQAAAAEAACcQAAAAEMIvRA61NHINPY1pfBNT5SXrLSS5VKO2YnCF4z2oMTJR/Gu2PLxFRVMjtX39I4apwg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "b08cb75b-f884-4f6a-a0fe-c97d886b5091",
+                            SecurityStamp = "67e489cb-9c2b-4ef6-9e4f-365e7aad686c",
                             Status = 1,
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         });
+                });
+
+            modelBuilder.Entity("Domain.HelperClass.TrackerLog", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeleteDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LoggedInUserEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Page")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ProcessStatus")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TargetAccount")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TargetEmail")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdateDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TrackerLogs");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -267,15 +321,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "efcf45f5-7e39-4b63-8f81-d3c784777b93",
-                            ConcurrencyStamp = "3e0e199b-89cc-4660-b85c-2933520f979f",
+                            Id = "93903623-74df-482e-9d90-0515c3306ed8",
+                            ConcurrencyStamp = "8ef2bd0d-0fe1-48fc-ab8e-2cdf204811ba",
                             Name = "Master",
                             NormalizedName = "MASTER"
                         },
                         new
                         {
-                            Id = "23afde8c-ca22-4a8f-964f-c6c8ee884a3d",
-                            ConcurrencyStamp = "a7522bf6-1a36-40f7-bd47-6c45ab8f7b70",
+                            Id = "a5b6ee73-894d-485b-b1ba-4a1cd5c4fbf5",
+                            ConcurrencyStamp = "68f25661-d376-4fc3-9896-d4e60424a88b",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -287,7 +341,7 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
@@ -312,7 +366,7 @@ namespace Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
@@ -370,8 +424,8 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "0d0f75a2-71cc-4061-bf65-3e70e02f3d6e",
-                            RoleId = "efcf45f5-7e39-4b63-8f81-d3c784777b93"
+                            UserId = "318597ac-f2bd-4081-a689-8cfb0936d334",
+                            RoleId = "93903623-74df-482e-9d90-0515c3306ed8"
                         });
                 });
 

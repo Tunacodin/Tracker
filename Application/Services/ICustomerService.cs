@@ -41,5 +41,7 @@ namespace Application.Services
         Task<GenericResponse<PaginatedResponse<CustomerVM>>> GetAllCustomersPaginated(
             PaginationDTO pagination
         );
+
+        Task<GenericResponse<Token>> GenerateToken(string email);
     }
 }

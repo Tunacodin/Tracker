@@ -12,7 +12,8 @@
     <title>Tracker Panel | Giriş Sayfası</title>
 
     <!-- Google Font: Source Sans Pro -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="~/admin/plugins/fontawesome-free/css/all.min.css">
     <!-- icheck bootstrap -->
@@ -32,13 +33,16 @@
                 <p class="login-box-msg">Lütfen bilgilerinizi giriniz</p>
 
                 <!-- Login Form -->
-                <form asp-action="Index" method="post" id="loginForm">
+                <form asp-controller="Auth" asp-action="login" method="post" id="loginForm">
+                    @Html.AntiForgeryToken()
                     <div class="input-group mb-3">
-                        <input type="email" id="Email" class="form-control" placeholder="E-posta" asp-for="Email" required>
+                        <input type="email" id="Email" class="form-control" placeholder="E-posta" asp-for="Email"
+                            required>
                         <div class="input-group-text"> <span class="bi bi-envelope-at"></span> </div>
                     </div>
                     <div class="input-group mb-3">
-                        <input type="password" id="Password" class="form-control" asp-for="Password" placeholder="Şifre">
+                        <input type="password" id="Password" class="form-control" asp-for="Password"
+                            placeholder="Şifre">
                         <div class="input-group-text"> <span class="bi bi-lock-fill"></span> </div>
                     </div>
                     <div asp-validation-summary="All" class="text-danger"></div>
@@ -52,10 +56,14 @@
                 </form>
 
                 <!-- Two-Factor Authentication Form -->
-                <form asp-action="VerifyCode" method="post" id="twoFactorForm" style="display: none;">
+                <form asp-controller="Auth" asp-action="verify-code" method="post" id="twoFactorForm"
+                    style="display: none;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="EmailForVerification" name="Email" />
                     <p class="login-box-msg">E-posta adresinize gelen doğrulama kodunu giriniz</p>
                     <div class="input-group mb-3">
-                        <input type="text" id="VerificationCode" name="VerificationCode" class="form-control" placeholder="Doğrulama Kodu" required>
+                        <input type="text" id="VerificationCode" name="VerificationCode" class="form-control"
+                            placeholder="Doğrulama Kodu" required>
                         <div class="input-group-text"> <span class="bi bi-shield-lock"></span> </div>
                     </div>
                     <div asp-validation-summary="All" class="text-danger"></div>
@@ -82,12 +90,133 @@
 
     <!-- Custom Script to Toggle Forms -->
     <script>
-        document.getElementById("loginForm").addEventListener("submit", function(e) {
+        const apiBaseUrl = 'https://localhost:7096/api';
+
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
             e.preventDefault();
 
-            // Simulate successful login and show Two-Factor Authentication form
-            document.getElementById("loginForm").style.display = "none";
-            document.getElementById("twoFactorForm").style.display = "block";
+            const form = this;
+            const formData = new FormData(form);
+
+            // API'ye gönderilecek JSON verisi
+            const loginData = {
+                email: formData.get("Email"),
+                password: formData.get("Password")
+            };
+
+            fetch(`${apiBaseUrl}/Auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(loginData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isSuccess) {
+                        // Login başarılı, doğrulama kodunu göster
+                        document.getElementById("loginForm").style.display = "none";
+                        document.getElementById("twoFactorForm").style.display = "block";
+                        // Email'i hidden input'a kaydet
+                        document.getElementById("EmailForVerification").value = loginData.email;
+                    } else {
+                        // Hata mesajını göster
+                        const validationSummary = form.querySelector('.validation-summary-errors');
+                        if (validationSummary) {
+                            validationSummary.innerHTML = `<ul><li>${data.message}</li></ul>`;
+                        } else {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'validation-summary-errors text-danger';
+                            errorDiv.innerHTML = `<ul><li>${data.message}</li></ul>`;
+                            form.appendChild(errorDiv);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const validationSummary = form.querySelector('.validation-summary-errors');
+                    if (validationSummary) {
+                        validationSummary.innerHTML = `<ul><li>An error occurred: ${error.message}</li></ul>`;
+                    } else {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'validation-summary-errors text-danger';
+                        errorDiv.innerHTML = `<ul><li>An error occurred: ${error.message}</li></ul>`;
+                        form.appendChild(errorDiv);
+                    }
+                });
+        });
+
+        document.getElementById("twoFactorForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const formData = new FormData(form);
+
+            // API'ye gönderilecek JSON verisi
+            const verifyData = {
+                email: formData.get("Email"),
+                verificationCode: formData.get("VerificationCode")
+            };
+
+            fetch(`${apiBaseUrl}/Auth/verify-code`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(verifyData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.isSuccess && data.data && data.data.accessToken) {
+                        // Token'ı localStorage'a kaydet
+                        localStorage.setItem('AuthToken', data.data.accessToken);
+
+                        // Token'ı cookie'ye de kaydet
+                        document.cookie = `AuthToken=${data.data.accessToken}; path=/; secure; samesite=strict`;
+
+                        // Sayfa yönlendirmesini fetch ile yapalım
+                        fetch('/Home/Index', {
+                            headers: {
+                                'Authorization': `Bearer ${data.data.accessToken}`
+                            }
+                        })
+                            .then(response => {
+                                if (response.ok) {
+                                    window.location.href = '/Home/Index';
+                                } else {
+                                    throw new Error('Yönlendirme başarısız');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Yönlendirme hatası:', error);
+                                // Hata durumunda da Index'e yönlendir
+                                window.location.href = '/Home/Index';
+                            });
+                    } else {
+                        // Hata mesajını göster
+                        const validationSummary = form.querySelector('.validation-summary-errors');
+                        if (validationSummary) {
+                            validationSummary.innerHTML = `<ul><li>${data.message || 'Doğrulama başarısız'}</li></ul>`;
+                        } else {
+                            const errorDiv = document.createElement('div');
+                            errorDiv.className = 'validation-summary-errors text-danger';
+                            errorDiv.innerHTML = `<ul><li>${data.message || 'Doğrulama başarısız'}</li></ul>`;
+                            form.appendChild(errorDiv);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const validationSummary = form.querySelector('.validation-summary-errors');
+                    if (validationSummary) {
+                        validationSummary.innerHTML = `<ul><li>${error.message}</li></ul>`;
+                    } else {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'validation-summary-errors text-danger';
+                        errorDiv.innerHTML = `<ul><li>${error.message}</li></ul>`;
+                        form.appendChild(errorDiv);
+                    }
+                });
         });
     </script>
 </body>

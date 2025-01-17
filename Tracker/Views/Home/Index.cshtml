@@ -5,6 +5,52 @@
 }
 @model BalancesVMPaginated;
 
+<script>
+    // Sayfa yüklendiğinde token kontrolü yap
+    document.addEventListener('DOMContentLoaded', function () {
+        const token = localStorage.getItem('AuthToken');
+        if (!token) {
+            // Token yoksa login sayfasına yönlendir
+            window.location.href = '/Auth/Index';
+            return;
+        }
+
+        // Token varsa, tüm AJAX isteklerine Authorization header'ı ekle
+        $.ajaxSetup({
+            beforeSend: function (xhr) {
+                xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            }
+        });
+    });
+
+    function searchTable() {
+        // Get input value and convert to lowercase for case-insensitive search
+        var input = document.getElementById("tableSearch").value.toLowerCase();
+        var table = document.querySelector(".table");
+        var rows = table.getElementsByTagName("tr");
+
+        // Loop through all table rows (skip header row)
+        for (var i = 1; i < rows.length; i++) {
+            var showRow = false;
+            var cells = rows[i].getElementsByTagName("td");
+
+            // Check each cell in the row (except the last one with operations)
+            for (var j = 0; j < cells.length - 1; j++) {
+                var cellText = cells[j].textContent || cells[j].innerText;
+
+                // If cell text contains the search input, show the row
+                if (cellText.toLowerCase().indexOf(input) > -1) {
+                    showRow = true;
+                    break;
+                }
+            }
+
+            // Set row display style based on search result
+            rows[i].style.display = showRow ? "" : "none";
+        }
+    }
+</script>
+
 <div class="app-content-header">
     <!--begin::Container-->
     <div class="container-fluid">
@@ -139,31 +185,3 @@
         </div>
     </section>
 </div> <!--end::App Content-->
-<script>
-    function searchTable() {
-        // Get input value and convert to lowercase for case-insensitive search
-        var input = document.getElementById("tableSearch").value.toLowerCase();
-        var table = document.querySelector(".table");
-        var rows = table.getElementsByTagName("tr");
-
-        // Loop through all table rows (skip header row)
-        for (var i = 1; i < rows.length; i++) {
-            var showRow = false;
-            var cells = rows[i].getElementsByTagName("td");
-
-            // Check each cell in the row (except the last one with operations)
-            for (var j = 0; j < cells.length - 1; j++) {
-                var cellText = cells[j].textContent || cells[j].innerText;
-
-                // If cell text contains the search input, show the row
-                if (cellText.toLowerCase().indexOf(input) > -1) {
-                    showRow = true;
-                    break;
-                }
-            }
-
-            // Set row display style based on search result
-            rows[i].style.display = showRow ? "" : "none";
-        }
-    }
-</script>

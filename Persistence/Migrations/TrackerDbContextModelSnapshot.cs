@@ -199,6 +199,12 @@ namespace Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("VerificationCode")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("VerificationCodeExpiration")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("WhoAdded")
                         .HasColumnType("nvarchar(max)");
 
@@ -217,10 +223,10 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "e458af5c-d303-4530-9d06-67ba517b486b",
+                            Id = "318597ac-f2bd-4081-a689-8cfb0936d334",
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "72a64ecc-cf26-40f3-be0c-bf74ba258518",
-                            CreationDate = new DateTime(2024, 12, 11, 18, 15, 42, 500, DateTimeKind.Utc).AddTicks(385),
+                            ConcurrencyStamp = "fb561c17-4886-4266-80f9-bee39ab01e4b",
+                            CreationDate = new DateTime(2025, 1, 16, 20, 35, 21, 496, DateTimeKind.Utc).AddTicks(1919),
                             Email = "test@test.com",
                             EmailConfirmed = true,
                             FullName = "admin",
@@ -229,7 +235,7 @@ namespace Persistence.Migrations
                             NormalizedUserName = "ADMIN",
                             PasswordHash = "AQAAAAEAACcQAAAAEMIvRA61NHINPY1pfBNT5SXrLSS5VKO2YnCF4z2oMTJR/Gu2PLxFRVMjtX39I4apwg==",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "89d42d02-08bd-4e81-a2d9-3bddeabc8f95",
+                            SecurityStamp = "67e489cb-9c2b-4ef6-9e4f-365e7aad686c",
                             Status = 1,
                             TwoFactorEnabled = false,
                             UserName = "admin"
@@ -312,15 +318,15 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "36971528-dab3-4e27-9e02-500b5eb0788a",
-                            ConcurrencyStamp = "9d4d6549-e24d-461c-867f-f3b2e3bd9be4",
+                            Id = "93903623-74df-482e-9d90-0515c3306ed8",
+                            ConcurrencyStamp = "8ef2bd0d-0fe1-48fc-ab8e-2cdf204811ba",
                             Name = "Master",
                             NormalizedName = "MASTER"
                         },
                         new
                         {
-                            Id = "cec6af65-6c25-4587-829a-c20761f244e6",
-                            ConcurrencyStamp = "c1c6c20b-2e38-450b-984c-4621654e5db2",
+                            Id = "a5b6ee73-894d-485b-b1ba-4a1cd5c4fbf5",
+                            ConcurrencyStamp = "68f25661-d376-4fc3-9896-d4e60424a88b",
                             Name = "Customer",
                             NormalizedName = "CUSTOMER"
                         });
@@ -415,8 +421,8 @@ namespace Persistence.Migrations
                     b.HasData(
                         new
                         {
-                            UserId = "e458af5c-d303-4530-9d06-67ba517b486b",
-                            RoleId = "36971528-dab3-4e27-9e02-500b5eb0788a"
+                            UserId = "318597ac-f2bd-4081-a689-8cfb0936d334",
+                            RoleId = "93903623-74df-482e-9d90-0515c3306ed8"
                         });
                 });
 

@@ -1,6 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.InteropServices;
+using System.Security.Claims;
 using System.Security.Policy;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Application.DTOs;
@@ -17,6 +20,7 @@ using Application.Utilities.Helper;
 using Application.Utilities.Response;
 using Application.VMs;
 using AutoMapper;
+using Azure;
 using Domain.Entities;
 using Domain.Enums;
 using FluentValidation;
@@ -24,6 +28,9 @@ using Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+
+using static QRCoder.PayloadGenerator;
 
 namespace Persistence.ConcreteServices.CustomerService
 {
@@ -60,6 +67,7 @@ namespace Persistence.ConcreteServices.CustomerService
             IHttpContextAccessor httpContext,
             IEmailService emailService
 
+
         )
         {
             this.userManager = userManager;
@@ -75,6 +83,7 @@ namespace Persistence.ConcreteServices.CustomerService
             this.codeReadRepository = codeReadRepository;
             this.customerWriteRepository = customerWriteRepository;
             this.httpContext = httpContext;
+            this.emailService = emailService;
         }
 
         public async Task<GenericResponse<Token>> CreateCustomerAsync(CreateCustomerDTO model)
@@ -164,6 +173,7 @@ namespace Persistence.ConcreteServices.CustomerService
                 response.IsSuccess = true;
                 response.Message = Messages.VerificationCodeSent; // "Doğrulama kodu gönderildi."
                 response.Data = null; // Şu an token döndürmediğimiz için null.
+
             }
             catch (Exception ex)
             {
@@ -205,6 +215,8 @@ namespace Persistence.ConcreteServices.CustomerService
                     response.Message = Messages.InvalidOrExpiredCode; // "Geçersiz veya süresi dolmuş kod."
                     return response;
                 }
+
+                //token buraya taşınacak
 
                 // Kod doğrulandı, kullanıcıyı giriş yapılmış kabul et
                 customer.VerificationCode = null; // Kullanılmış kodu temizle
@@ -510,6 +522,59 @@ namespace Persistence.ConcreteServices.CustomerService
             return response;
         }
 
-     
+        public Task<GenericResponse<Token>> GenerateToken(string email)
+        {
+            var response = new GenericResponse<Token>();
+
+            try
+            {
+                // Token süresi
+                var tokenExpiration = DateTime.UtcNow.AddHours(1);
+
+                // JWT içeriği
+                var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Email, email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // Benzersiz Token ID
+        };
+
+                // Token güvenlik anahtarı ve şifreleme algoritması
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("trackerapp icin hazirlanacak secretkey"));
+                var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+                // Token oluşturma
+                var tokenDescriptor = new SecurityTokenDescriptor
+                {
+                    Subject = new ClaimsIdentity(claims),
+                    Expires = tokenExpiration,
+                    SigningCredentials = credentials,
+                    Issuer = "www.trackerapp.com",
+                    Audience = "www.trackerapp.com"
+                };
+
+                var tokenHandler = new JwtSecurityTokenHandler();
+                var securityToken = tokenHandler.CreateToken(tokenDescriptor);
+                var tokenString = tokenHandler.WriteToken(securityToken);
+
+                // Token yanıtını oluştur
+                response.IsSuccess = true;
+                response.Data = new Token
+                {
+                    AccessToken = tokenString,
+                    Expiration = tokenExpiration
+                };
+                response.Message = "Token başarıyla oluşturuldu.";
+            }
+            catch (Exception ex)
+            {
+                // Hata durumunda mesaj ve loglama
+                response.IsSuccess = false;
+                response.Message = $"Token oluşturulamadı: {ex.Message}";
+                Console.WriteLine($"GenerateToken Hatası: {ex.Message}");
+            }
+
+            return Task.FromResult(response);
+        }
+
     }
 }

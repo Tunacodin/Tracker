@@ -3,10 +3,14 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace Persistence.Migrations
 {
+    /// <inheritdoc />
     public partial class init : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -26,7 +30,9 @@ namespace Persistence.Migrations
                     NeedToVerify = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     WhoAdded = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DeviceId = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DeviceModel = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    DeviceModel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MypayzNo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Iban = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -58,6 +64,8 @@ namespace Persistence.Migrations
                     DeleteDate = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Status = table.Column<int>(type: "int", nullable: false),
                     WhoAdded = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    VerificationCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    VerificationCodeExpiration = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -76,6 +84,47 @@ namespace Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Codes",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeleteDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    WhoUsed = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AccountPhoneNumbers = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Codes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrackerLogs",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    CreationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdateDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DeleteDate = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Status = table.Column<int>(type: "int", nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LoggedInUserEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TargetEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TargetAccount = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IpAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ActionType = table.Column<int>(type: "int", nullable: true),
+                    Page = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ProcessStatus = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrackerLogs", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -211,22 +260,21 @@ namespace Persistence.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "13a5a24b-7129-40d1-bbcc-6c867446b3ec", "b34949d0-4034-47c8-88b2-f5eb84b618e5", "Customer", "CUSTOMER" });
-
-            migrationBuilder.InsertData(
-                table: "AspNetRoles",
-                columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "ba87795e-5327-4fc4-94f0-db3b9882ffcb", "8fcce8bc-8623-4817-9cc8-e9b5456c922b", "Master", "MASTER" });
+                values: new object[,]
+                {
+                    { "93903623-74df-482e-9d90-0515c3306ed8", "8ef2bd0d-0fe1-48fc-ab8e-2cdf204811ba", "Master", "MASTER" },
+                    { "a5b6ee73-894d-485b-b1ba-4a1cd5c4fbf5", "68f25661-d376-4fc3-9896-d4e60424a88b", "Customer", "CUSTOMER" }
+                });
 
             migrationBuilder.InsertData(
                 table: "AspNetUsers",
-                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreationDate", "DeleteDate", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdateDate", "UserName", "WhoAdded" },
-                values: new object[] { "6f14000d-f470-4d2f-9386-cce9ef47dc1a", 0, "9f42d9c2-fa24-44d7-9c1e-3c5f0a52840b", new DateTime(2024, 11, 27, 7, 15, 7, 25, DateTimeKind.Utc).AddTicks(959), null, "test@test.com", true, "admin", false, null, "TEST@TEST.COM", "ADMIN", "AQAAAAEAACcQAAAAEMIvRA61NHINPY1pfBNT5SXrLSS5VKO2YnCF4z2oMTJR/Gu2PLxFRVMjtX39I4apwg==", null, false, "9536242a-c3d0-4dca-9de6-e12313250a8f", 1, false, null, "admin", null });
+                columns: new[] { "Id", "AccessFailedCount", "ConcurrencyStamp", "CreationDate", "DeleteDate", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "Status", "TwoFactorEnabled", "UpdateDate", "UserName", "VerificationCode", "VerificationCodeExpiration", "WhoAdded" },
+                values: new object[] { "318597ac-f2bd-4081-a689-8cfb0936d334", 0, "fb561c17-4886-4266-80f9-bee39ab01e4b", new DateTime(2025, 1, 16, 20, 35, 21, 496, DateTimeKind.Utc).AddTicks(1919), null, "test@test.com", true, "admin", false, null, "TEST@TEST.COM", "ADMIN", "AQAAAAEAACcQAAAAEMIvRA61NHINPY1pfBNT5SXrLSS5VKO2YnCF4z2oMTJR/Gu2PLxFRVMjtX39I4apwg==", null, false, "67e489cb-9c2b-4ef6-9e4f-365e7aad686c", 1, false, null, "admin", null, null, null });
 
             migrationBuilder.InsertData(
                 table: "AspNetUserRoles",
                 columns: new[] { "RoleId", "UserId" },
-                values: new object[] { "ba87795e-5327-4fc4-94f0-db3b9882ffcb", "6f14000d-f470-4d2f-9386-cce9ef47dc1a" });
+                values: new object[] { "93903623-74df-482e-9d90-0515c3306ed8", "318597ac-f2bd-4081-a689-8cfb0936d334" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AccountCustomer_CustomerId",
@@ -273,6 +321,7 @@ namespace Persistence.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
@@ -292,6 +341,12 @@ namespace Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUserTokens");
+
+            migrationBuilder.DropTable(
+                name: "Codes");
+
+            migrationBuilder.DropTable(
+                name: "TrackerLogs");
 
             migrationBuilder.DropTable(
                 name: "Accounts");

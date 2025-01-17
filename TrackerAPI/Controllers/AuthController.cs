@@ -4,7 +4,6 @@ using Application.Services;
 using Application.Utilities.Constants;
 using Application.Utilities.Helper;
 using Application.Utilities.Response;
-using Domain.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,25 +26,37 @@ namespace TrackerAPI.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDTO loginDTO)
         {
+            // Giriş bilgilerinin validasyonu
             LoginDTOValidator validator = new();
             var validationResult = validator.Validate(loginDTO);
-            GenericResponse<Token> response = new();
 
             if (!validationResult.IsValid)
             {
-                response.ValidationErrors = validationResult.Errors.GetValidationErrors();
-
-                response.Message = Messages.ValidationFailed;
-                response.IsSuccess = false;
-                return BadRequest(response);
+                return BadRequest(new GenericResponse<bool>
+                {
+                    IsSuccess = false,
+                    Message = Messages.ValidationFailed,
+                    ValidationErrors = validationResult.Errors.GetValidationErrors()
+                });
             }
 
-            response = await customerService.LoginCustomerAsync(loginDTO);
+            // Login işlemi ve doğrulama kodu gönderme
+            var response = await customerService.LoginCustomerAsync(loginDTO);
 
             if (!response.IsSuccess)
-                return Unauthorized(response);
+            {
+                return Unauthorized(new GenericResponse<bool>
+                {
+                    IsSuccess = false,
+                    Message = response.Message
+                });
+            }
 
-            return Ok(response);
+            return Ok(new GenericResponse<bool>
+            {
+                IsSuccess = true,
+                Message = Messages.VerificationCodeSent
+            });
         }
 
         /// <summary>
@@ -54,52 +65,39 @@ namespace TrackerAPI.Controllers
         [HttpPost("verify-code")]
         public async Task<IActionResult> VerifyCode([FromBody] TwoFactorAuthDTO twoFactorAuthDTO)
         {
-            // Model State kontrolü (Validasyon hatalarını kontrol et)
+            // Validasyon kontrolü
             if (!ModelState.IsValid)
             {
-                return BadRequest(new GenericResponse<bool>
+                return BadRequest(new GenericResponse<Token>
                 {
                     IsSuccess = false,
                     Message = Messages.ValidationFailed,
-                    ValidationErrors = ModelState.Values.SelectMany(v => v.Errors)
+                    ValidationErrors = ModelState.Values
+                        .SelectMany(v => v.Errors)
                         .Select(e => e.ErrorMessage)
                         .ToList()
                 });
             }
 
-            // Doğrulama kodunu kontrol et
-            var response = await customerService.VerifyLoginCodeAsync(
-                twoFactorAuthDTO.Email,
-                twoFactorAuthDTO.VerificationCode
-            );
+            // Doğrulama kodu kontrolü ve token oluşturma işlemi
+            var response = await customerService.VerifyLoginCodeAsync(twoFactorAuthDTO.Email, twoFactorAuthDTO.VerificationCode);
 
             if (!response.IsSuccess)
             {
-                // Eğer doğrulama başarısızsa, 401 Unauthorized yanıtı döndür
-                return Unauthorized(response);
-            }
-
-            // Eğer doğrulama başarılıysa, JWT token oluştur
-            var tokenResponse = await customerService.GenerateToken(twoFactorAuthDTO.Email.ToString());
-
-            if (tokenResponse == null || !tokenResponse.IsSuccess)
-            {
-                // Token üretimi başarısızsa hata yanıtı döndür
-                return StatusCode(500, new GenericResponse<bool>
+                return Unauthorized(new GenericResponse<Token>
                 {
                     IsSuccess = false,
-                    Message = "Token oluşturulurken bir hata oluştu."
+                    Message = response.Message
                 });
             }
 
-            // Yanıta token bilgisini ekle
+            // Başarılı doğrulama durumunda token bilgisini dön
             return Ok(new GenericResponse<Token>
             {
                 IsSuccess = true,
-                Message = "Doğrulama başarılı. Token oluşturuldu.",
-                Data = tokenResponse.Data
+                Message = Messages.LoginSuccess,
+                Data = response.Data
             });
         }
-
     }
 }

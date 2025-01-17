@@ -17,9 +17,9 @@ namespace Application.Services
     {
 
         // Yeni Ekleme
-        Task<GenericResponse<bool>> VerifyLoginCodeAsync(string email, string verificationCode);
+        Task<GenericResponse<Token>> VerifyLoginCodeAsync(string email, string verificationCode);
         Task<GenericResponse<Token>> CreateCustomerAsync(CreateCustomerDTO model);
-        Task<GenericResponse<Token>> LoginCustomerAsync(LoginDTO model);
+        Task<GenericResponse<bool>> LoginCustomerAsync(LoginDTO model);
         Task<GenericResponse<BalancesVM>> GetBalancesAsync(string email);
         Task<GenericResponse<List<AccountVM>>> GetCustomerAccounts(string email);
         Task<GenericResponse<List<CustomerVM>>> GetAllCustomers();

@@ -1,42 +1,36 @@
-﻿@{
+@{
     Layout = null;
 }
-@model LoginVM
+@model VerifyCodeVM
 
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tracker Panel | Giriş</title>
+    <title>Tracker Panel | Doğrulama</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 </head>
-
 <body class="bg-light">
     <div class="container">
         <div class="row justify-content-center mt-5">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h3 class="card-title text-center mb-4">Giriş Yap</h3>
+                        <h3 class="card-title text-center mb-4">Doğrulama Kodu</h3>
 
-                        <form asp-controller="Auth" asp-action="Index" method="post">
+                        <form asp-controller="Auth" asp-action="VerifyCode" method="post">
                             <div class="validation-summary-errors text-danger" asp-validation-summary="ModelOnly"></div>
 
-                            <div class="form-group mb-3">
-                                <label asp-for="Email">Email</label>
-                                <input asp-for="Email" class="form-control" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
+                            <input type="hidden" asp-for="Email" value="@ViewBag.Email" />
 
                             <div class="form-group mb-3">
-                                <label asp-for="Password">Şifre</label>
-                                <input asp-for="Password" type="password" class="form-control" />
-                                <span asp-validation-for="Password" class="text-danger"></span>
+                                <label asp-for="VerificationCode">Doğrulama Kodu</label>
+                                <input asp-for="VerificationCode" class="form-control" placeholder="Doğrulama kodunu giriniz" />
+                                <span asp-validation-for="VerificationCode" class="text-danger"></span>
                             </div>
 
-                            <button type="submit" class="btn btn-primary w-100">Giriş Yap</button>
+                            <button type="submit" class="btn btn-primary w-100">Doğrula</button>
                         </form>
                     </div>
                 </div>
@@ -49,5 +43,4 @@
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
 </body>
-
-</html>
+</html> 

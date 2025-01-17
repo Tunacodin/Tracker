@@ -123,9 +123,9 @@ namespace Persistence.ConcreteServices.CustomerService
             return response;
         }
 
-        public async Task<GenericResponse<Token>> LoginCustomerAsync(LoginDTO model)
+        public async Task<GenericResponse<bool>> LoginCustomerAsync(LoginDTO model)
         {
-            GenericResponse<Token> response = new();
+            var response = new GenericResponse<bool>();
 
             // Kullanıcıyı email ile bul
             Customer customer = await customerReadRepository
@@ -148,85 +148,69 @@ namespace Persistence.ConcreteServices.CustomerService
                 return response;
             }
 
-            // Doğrulama kodu oluştur
-            string verificationCode = GenerateVerificationCode();
-            customer.VerificationCode = verificationCode;
-            customer.VerificationCodeExpiration = DateTime.UtcNow.AddMinutes(5); // 5 dakika geçerli
-
-            // Veritabanına güncelleme
-            var updateResult = await userManager.UpdateAsync(customer);
-            if (!updateResult.Succeeded)
-            {
-                response.IsSuccess = false;
-                response.Message = Messages.SaveFail;
-                return response;
-            }
-
             try
             {
-                // Doğrulama kodunu kullanıcıya gönder
-                string subject = "Doğrulama Kodunuz";
-                string body = $"Merhaba {customer.UserName},\nDoğrulama kodunuz: {verificationCode}";
-                await emailService.SendEmailAsync(customer.Email, subject, body);
+                // Doğrulama kodu gönder
+                string verificationCode = GenerateVerificationCode();
+                customer.VerificationCode = verificationCode;
+                customer.VerificationCodeExpiration = DateTime.UtcNow.AddMinutes(5);
+                await userManager.UpdateAsync(customer);
+                await emailService.SendEmailAsync(customer.Email, "Doğrulama Kodu", $"Doğrulama kodunuz: {verificationCode}");
 
-                // Başarılı sonuç
                 response.IsSuccess = true;
-                response.Message = Messages.VerificationCodeSent; // "Doğrulama kodu gönderildi."
-                response.Data = null; // Şu an token döndürmediğimiz için null.
-
+                response.Message = Messages.VerificationCodeSent;
+                response.Data = true;
             }
             catch (Exception ex)
             {
-                // Hata durumunda başarısız mesajı döndür
                 response.IsSuccess = false;
-                response.Message = $"Doğrulama kodu gönderilemedi: {ex.Message}";
-                response.Data = null; // Data'yı null olarak bırakıyoruz.
+                response.Message = ex.Message;
+                response.Data = false;
             }
             return response;
-
         }
 
-        private string GenerateVerificationCode()
+        private static string GenerateVerificationCode()
         {
             return new Random().Next(100000, 999999).ToString(); // 6 haneli rastgele bir kod
         }
 
-        public async Task<GenericResponse<bool>> VerifyLoginCodeAsync(string email, string verificationCode)
+        public async Task<GenericResponse<Token>> VerifyLoginCodeAsync(string email, string verificationCode)
         {
+            var response = new GenericResponse<Token>();
+
+            Customer? customer = await customerReadRepository
+                .GetWhere(c => c.Email == email)
+                .FirstOrDefaultAsync();
+
+            if (customer is null)
             {
-                GenericResponse<bool> response = new();
-
-                // Kullanıcıyı email ile bul
-                Customer customer = await customerReadRepository
-                    .GetWhere(c => c.Email == email)
-                    .FirstOrDefaultAsync();
-
-                if (customer == null)
-                {
-                    response.IsSuccess = false;
-                    response.Message = Messages.CustomerNotFound;
-                    return response;
-                }
-
-                // Doğrulama kodunu kontrol et
-                if (customer.VerificationCode != verificationCode || customer.VerificationCodeExpiration < DateTime.UtcNow)
-                {
-                    response.IsSuccess = false;
-                    response.Message = Messages.InvalidOrExpiredCode; // "Geçersiz veya süresi dolmuş kod."
-                    return response;
-                }
-
-                //token buraya taşınacak
-
-                // Kod doğrulandı, kullanıcıyı giriş yapılmış kabul et
-                customer.VerificationCode = null; // Kullanılmış kodu temizle
-                customer.VerificationCodeExpiration = null;
-                await userManager.UpdateAsync(customer);
-
-                response.IsSuccess = true;
-                response.Message = Messages.LoginSuccess; // "Başarıyla giriş yapıldı."
+                response.IsSuccess = false;
+                response.Message = Messages.CustomerNotFound;
                 return response;
             }
+
+            if (customer.VerificationCode != verificationCode || customer.VerificationCodeExpiration < DateTime.UtcNow)
+            {
+                response.IsSuccess = false;
+                response.Message = Messages.InvalidOrExpiredCode;
+                return response;
+            }
+
+            // Token oluştur
+            var userRoles = await userManager.GetRolesAsync(customer);
+            Token token = tokenGenerator.CreateAccesToken(60 * 60 * 24, customer, userRoles);
+            token.Id = customer.Id;
+
+            // Doğrulama kodunu temizle
+            customer.VerificationCode = null;
+            customer.VerificationCodeExpiration = null;
+            await userManager.UpdateAsync(customer);
+
+            response.IsSuccess = true;
+            response.Message = Messages.LoginSuccess;
+            response.Data = token;
+            return response;
         }
         public async Task<GenericResponse<BalancesVM>> GetBalancesAsync(string email)
         {
